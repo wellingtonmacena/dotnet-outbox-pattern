@@ -8,11 +8,12 @@ namespace OutboxPatternDbInitializer.Migrations
         public override void Up()
         {
             Create.Table("orders")
-                .WithColumn("id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("id").AsGuid().PrimaryKey()
                  .WithColumn("product_name").AsString(100).NotNullable()
                 .WithColumn("customer_name").AsString(100).NotNullable()
                 .WithColumn("quantity").AsInt32().NotNullable()
             .WithColumn("total_price").AsDecimal().NotNullable()
+             .WithColumn("updated_at").AsDateTime().Nullable()
              .WithColumn("created_at").AsDateTime().NotNullable();
         }
 

@@ -9,12 +9,14 @@ namespace OutboxPatternDbInitializer.Migrations
         public override void Up()
         {
             Create.Table("orders_outbox")
-                .WithColumn("id").AsInt32().PrimaryKey().Identity()
+                .WithColumn("id").AsGuid().PrimaryKey()
+                .WithColumn("order_id").AsGuid().NotNullable()
                 .WithColumn("type").AsString(100).NotNullable()
                 .WithColumn("content").AsString().NotNullable()
-            .WithColumn("occurred_on_utc").AsDateTime().NotNullable()
-            .WithColumn("processed_on_utc").AsDateTime()
-            .WithColumn("error").AsString();
+           .WithColumn("created_at").AsDateTime().NotNullable()
+            .WithColumn("processed_on_utc").AsDateTime().Nullable()
+             .WithColumn("updated_at").AsDateTime().Nullable()
+            .WithColumn("error").AsString().Nullable();
         }
 
         public override void Down()
