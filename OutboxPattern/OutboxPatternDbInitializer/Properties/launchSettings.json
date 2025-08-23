@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "OutboxPatternDbInitializer": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
