@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Messaging.Contracts": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

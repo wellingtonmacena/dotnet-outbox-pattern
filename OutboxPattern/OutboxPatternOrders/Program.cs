@@ -1,5 +1,8 @@
 
+using MassTransit;
+using Messaging.Contracts;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
 using System.Text.Json;
 
 namespace OutboxPatternOrders
@@ -12,7 +15,13 @@ namespace OutboxPatternOrders
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+     .AddJsonOptions(options =>
+     {
+         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+     });
+
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             builder.Services.AddEndpointsApiExplorer();
@@ -22,6 +31,46 @@ namespace OutboxPatternOrders
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DbConnectionString")));
 
+            builder.Services.AddQuartz(configure =>
+            {
+                configure.UseMicrosoftDependencyInjectionJobFactory();
+            });
+
+            builder.Services.AddQuartzHostedService(options =>
+            {
+                options.WaitForJobsToComplete = true;
+            });
+
+
+            builder.Services.AddQuartz(configure =>
+            {
+                var jobKey = new JobKey(nameof(ProcessOutboxMessagesJob));
+
+                configure
+                    .AddJob<ProcessOutboxMessagesJob>(jobKey)
+                    .AddTrigger(
+                        trigger => trigger.ForJob(jobKey).WithSimpleSchedule(
+                            schedule => schedule.WithIntervalInSeconds(10).WithRepeatCount(3)));
+
+                configure.UseMicrosoftDependencyInjectionJobFactory();
+            });
+
+            builder.Services.AddMassTransit(x =>
+            {
+                // Adiciona consumidores (caso tenha)
+             
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host("localhost", "/", h =>
+                    {
+                        h.Username("user");
+                        h.Password("password");
+                    });
+
+                 
+                });
+            });
             WebApplication app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -62,11 +111,13 @@ namespace OutboxPatternOrders
                 };
 
                 Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Order> createdOrder = await context.Orders.AddAsync(order);
+                var createdEvent = new OrderCreatedEvent(createdOrder.Entity.Id);
+
 
                 await context.OrdersOutboxMessages.AddAsync(new OrdersOutboxMessage
                 {
-                    OrderId = createdOrder.Entity.Id,
-                    Type = order.GetType().FullName,
+                    OrderId = createdEvent.Id,
+                    Type = createdEvent.GetType().FullName,
                     Content = JsonSerializer.Serialize(order),
                    
                 });

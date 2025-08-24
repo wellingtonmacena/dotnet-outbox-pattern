@@ -16,10 +16,12 @@ namespace OutboxPattern.Infrastructure.Configurations
 
             // Gerar GUID no banco automaticamente
             builder.Property(o => o.Id)
-                   .HasColumnName("id");
+                   .HasColumnName("id")
+            .IsRequired();
 
             builder.Property(o => o.OrderId)
-                  .HasColumnName("order_id");
+                  .HasColumnName("order_id")
+                  .IsRequired(); ;
 
             // Colunas restantes
             builder.Property(o => o.Type)
